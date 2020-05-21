@@ -128,14 +128,16 @@ def main():
 
     while connection.connected:
         try:
-            text = input()
-            if text == "/respawn":
-                print("respawning...")
-                packet = serverbound.play.ClientStatusPacket()
-                packet.action_id = serverbound.play.ClientStatusPacket.RESPAWN
-                connection.write_packet(packet)
-            else:
-                send(text)
+            time.sleep(10)
+            send("/server main")
+            # text = input()
+            # if text == "/respawn":
+            #     print("respawning...")
+            #     packet = serverbound.play.ClientStatusPacket()
+            #     packet.action_id = serverbound.play.ClientStatusPacket.RESPAWN
+            #     connection.write_packet(packet)
+            # else:
+            #     send(text)
         except KeyboardInterrupt:
             send("Bye!")
             print("Bye!")
