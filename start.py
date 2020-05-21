@@ -2,6 +2,9 @@
 
 from __future__ import print_function
 
+import time
+import os
+import signal
 import getpass
 import sys
 import re
@@ -62,10 +65,14 @@ def get_options():
 def main():
     options = get_options()
 
+    def handle_exception(*args):
+        print('handle exception')
+        os.kill(os.getpid(), signal.SIGINT)
+
     if options.offline:
         print("Connecting in offline mode...")
         connection = Connection(
-            options.address, options.port, username=options.username)
+            options.address, options.port, username=options.username, handle_exception=handle_exception, handle_exit=handle_exception)
     else:
         auth_token = authentication.AuthenticationToken()
         try:
@@ -108,7 +115,18 @@ def main():
 
     connection.connect()
 
-    while True:
+    def send(text):
+        print("sending", text)
+        packet = serverbound.play.ChatPacket()
+        packet.message = text
+        connection.write_packet(packet)
+
+    time.sleep(10)
+    send("/server main")
+    # time.sleep(3)
+    # send("Hello world! I'm online!")
+
+    while connection.connected:
         try:
             text = input()
             if text == "/respawn":
@@ -117,11 +135,11 @@ def main():
                 packet.action_id = serverbound.play.ClientStatusPacket.RESPAWN
                 connection.write_packet(packet)
             else:
-                packet = serverbound.play.ChatPacket()
-                packet.message = text
-                connection.write_packet(packet)
+                send(text)
         except KeyboardInterrupt:
+            send("Bye!")
             print("Bye!")
+            time.sleep(5)
             sys.exit()
 
 
